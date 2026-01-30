@@ -3,195 +3,255 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Afordness — Premium QR View</title>
+<title>Afordness — Verified Receipt (PDF Ready)</title>
+
+<!-- html2pdf bundle (includes html2canvas + jsPDF) -->
+<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
 
 <style>
 :root{
-  --bg1:#060716;
-  --bg2:#07102a;
-  --card:#07142b;
-  --gold:#facc15;
-  --soft:#98a8ff;
-  --muted:#8f98b4;
+  --bg1:#060716; --bg2:#07102a; --card:#071427; --gold:#facc15; --muted:#98a8ff;
 }
 *{box-sizing:border-box}
 body{
   margin:0;
   min-height:100vh;
-  font-family:Inter,Segoe UI,system-ui,Arial;
-  background: radial-gradient(1200px 600px at 10% 10%, rgba(124,58,237,0.06), transparent 8%),
+  font-family: "Inter", "Segoe UI", system-ui, "Noto Sans", sans-serif;
+  background: radial-gradient(1200px 600px at 10% 10%, rgba(124,58,237,0.04), transparent 8%),
               linear-gradient(180deg,var(--bg1),var(--bg2));
+  color:#e6eefc;
   display:flex;
   align-items:center;
   justify-content:center;
-  padding:24px;
-  color: #e6eefc;
+  padding:20px;
 }
 
-/* Card */
-.card {
+/* container */
+.wrapper{
   width:100%;
-  max-width:760px;
-  border-radius:18px;
-  padding:28px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  border: 1px solid rgba(255,255,255,0.03);
-  box-shadow: 0 20px 60px rgba(3,6,23,0.6);
+  max-width:880px;
   display:grid;
-  grid-template-columns: 1fr 360px;
-  gap:24px;
-  align-items:start;
+  grid-template-columns: 1fr 340px;
+  gap:20px;
+}
+/* left: receipt */
+.receipt-card{
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius:18px;
+  padding:22px;
+  border:1px solid rgba(255,255,255,0.03);
+  box-shadow: 0 20px 60px rgba(2,6,23,0.6);
 }
 
-/* Left: content */
-.head {
+/* header */
+.brand{
+  display:flex;
+  gap:14px;
+  align-items:center;
+}
+.brand .logo{
+  width:64px;height:64px;border-radius:12px;
+  background:linear-gradient(135deg,var(--gold),#e6b800);
+  display:flex;align-items:center;justify-content:center;color:#07102a;font-weight:800;
+  box-shadow:0 10px 30px rgba(250,204,21,0.12);
+}
+.title{font-size:20px;color:var(--gold);font-weight:800}
+.subtitle{font-size:13px;color:var(--muted);margin-top:4px}
+
+/* receipt body */
+.receipt-body{
+  margin-top:16px;
+  background: linear-gradient(180deg,#071226,#051028);
+  border-radius:12px;
+  padding:16px;
+  border:1px dashed rgba(250,204,21,0.12);
+  color:#e6eefc;
+  white-space:pre-wrap;
+  line-height:1.6;
+  font-size:15px;
+  word-break:break-word;
+}
+
+/* footer */
+.receipt-foot{
+  margin-top:14px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.verified{
+  background:#16a34a;color:#fff;padding:8px 12px;border-radius:999px;font-weight:700;font-size:13px;
+  box-shadow:0 8px 30px rgba(16,185,129,0.08);
+}
+.meta-small{font-size:12px;color:#9aa4ff}
+
+/* right: QR preview + actions */
+.side{
   display:flex;
   flex-direction:column;
-  gap:6px;
-}
-.brand {
-  display:flex;
-  align-items:center;
   gap:12px;
+  align-items:center;
 }
-.logo {
-  width:54px;height:54px;border-radius:10px;
-  background:linear-gradient(135deg,var(--gold),#e6b800);
-  display:flex;align-items:center;justify-content:center;font-weight:800;color:#07102a;
-  box-shadow: 0 8px 30px rgba(250,204,21,0.12);
-}
-.title{font-size:20px;font-weight:700;color:var(--gold);letter-spacing:1px}
-.subtitle{color:var(--soft);font-size:13px}
-
-/* result box */
-.resultWrap{
-  margin-top:14px;
-}
-.resultBox{
-  background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
-  border-radius:12px;padding:18px;border:1px dashed rgba(250,204,21,0.14);
-  min-height:140px;font-size:15px;line-height:1.7;color:#e6eefc;white-space:pre-wrap;word-break:break-word;
-  position:relative;
-  overflow:auto;
-}
-
-/* badge & actions */
-.rowActions{display:flex;gap:8px;align-items:center;margin-top:12px}
+.qwrap{background:#fff;padding:14px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.45)}
+.actions{display:flex;flex-direction:column;gap:8px;width:100%}
 .btn{
-  background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 12px;border-radius:10px;color:var(--soft);cursor:pointer;font-weight:600}
-.btn.gold{background:linear-gradient(90deg,var(--gold),#e6b800);color:#07102a;border:none;box-shadow:0 8px 20px rgba(250,204,21,0.12)}
-.copyNote{font-size:12px;color:var(--muted);margin-left:8px}
-
-/* Right: info / qr preview */
-.side{
-  display:flex;flex-direction:column;align-items:center;gap:12px;
+  padding:10px 12px;border-radius:10px;border:none;cursor:pointer;font-weight:700;
 }
-.canvasWrap{
-  background:#fff;padding:14px;border-radius:12px;box-shadow:0 12px 30px rgba(2,6,23,0.35);
-  display:flex;align-items:center;justify-content:center;
-}
-.meta{font-size:13px;color:var(--muted);text-align:center}
+.btn.pdf{background:linear-gradient(90deg,var(--gold),#e6b800);color:#07102a}
+.btn.print{background:#12213c;color:#fff}
+.btn.copy{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#fff}
 
-/* small view */
-@media(max-width:880px){
-  .card{grid-template-columns:1fr; padding:20px}
-  .canvasWrap{order:-1}
+/* responsive */
+@media(max-width:960px){
+  .wrapper{grid-template-columns:1fr; padding-bottom:24px}
+  .side{flex-direction:row;align-items:center;justify-content:space-between}
+  .actions{flex-direction:row}
 }
-
-/* subtle entrance */
-.card{transform:translateY(6px);opacity:0;animation:enter .45s ease forwards}
-@keyframes enter{to{transform:none;opacity:1}}
 </style>
 </head>
 <body>
 
-<div class="card" role="main" aria-live="polite">
-  <div>
-    <div class="head">
-      <div class="brand">
-        <div class="logo">AF</div>
-        <div>
-          <div class="title">AFORDNESS</div>
-          <div class="subtitle">Official • Secure QR Viewer</div>
-        </div>
+<div class="wrapper">
+  <!-- Receipt card (this will be exported to PDF) -->
+  <div class="receipt-card" id="receiptCard">
+    <div class="brand">
+      <div class="logo">AF</div>
+      <div>
+        <div class="title">AFORDNESS</div>
+        <div class="subtitle">Official • Secure Receipt Viewer</div>
       </div>
     </div>
 
-    <div class="resultWrap">
-      <div id="result" class="resultBox">QR scan successful — waiting for data...</div>
+    <div class="receipt-body" id="receiptBody">
+      Loading receipt...
+    </div>
 
-      <div class="rowActions">
-        <button class="btn gold" id="openRaw" style="display:none">Open in new tab</button>
-        <button class="btn" id="copyBtn" style="display:none">Copy text</button>
-        <div class="copyNote" id="note"></div>
-      </div>
+    <div class="receipt-foot">
+      <div class="verified">✔ VERIFIED</div>
+      <div class="meta-small" id="receiptMeta">—</div>
     </div>
   </div>
 
+  <!-- Right side: QR preview + actions -->
   <div class="side">
-    <div class="canvasWrap" id="qrPreview">
-      <!-- small QR / icon shown when available -->
+    <div class="qwrap" id="qrPreview">
+      <!-- small placeholder; user may want to show QR image or icon -->
       <svg width="120" height="120" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <rect x="1.5" y="1.5" width="21" height="21" rx="4" stroke="#e6eefc" stroke-opacity="0.06" fill="#fff"/>
+        <rect x="1.5" y="1.5" width="21" height="21" rx="4" stroke="#07102a" fill="#fff"/>
         <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z" fill="#07102a"/>
       </svg>
     </div>
-    <div class="meta">Afordness • Secure Viewer</div>
+
+    <div class="actions">
+      <button class="btn pdf" id="downloadPdfBtn">Download PDF</button>
+      <button class="btn print" id="printBtn">Print</button>
+      <button class="btn copy" id="copyBtn">Copy Text</button>
+    </div>
   </div>
 </div>
 
 <script>
-(function(){
-  // Support both ?text= and ?data= (and handle + space issue)
+/* =========================
+   READ data from URL param
+   Supports: ?data=...  or  ?text=...
+   ========================= */
+function getParam(){
   const params = new URLSearchParams(window.location.search);
-  let raw = params.get('text') || params.get('data') || params.get('q') || "";
-
-  // Some QR scanners convert spaces to + — normalize
-  function safeDecode(s){
-    try{
-      // replace + with space before decode
-      return decodeURIComponent(String(s).replace(/\+/g, ' '));
-    }catch(e){
-      // fallback: return raw
-      return String(s);
-    }
+  // try both keys
+  return params.get('data') || params.get('text') || params.get('q') || '';
+}
+function safeDecode(s){
+  if(!s) return '';
+  // some scanners convert spaces to +
+  try{
+    return decodeURIComponent(String(s).replace(/\+/g,' '));
+  }catch(e){
+    return String(s);
   }
+}
 
-  const resultEl = document.getElementById('result');
-  const copyBtn = document.getElementById('copyBtn');
-  const openRaw = document.getElementById('openRaw');
-  const note = document.getElementById('note');
+const raw = getParam();
+const decoded = safeDecode(raw);
+const receiptBody = document.getElementById('receiptBody');
+const metaEl = document.getElementById('receiptMeta');
 
-  if(!raw){
-    resultEl.textContent = "No data found in URL. Make sure your QR encodes a link like:\n\nhttps://youruser.github.io/your-repo/view.html?text=YOUR%20ENCODED%20TEXT\n\nIf the generator put the text directly into the QR (not a link), regenerate using the generator so it encodes the public link.";
-    note.textContent = "Tip: Use the generator's 'Generate Link & QR' button.";
-    return;
+if(!decoded){
+  receiptBody.textContent = "No data found. Make sure your QR encodes a link like:\nhttps://<user>.github.io/<repo>/view.html?data=ENCODED_TEXT";
+  metaEl.textContent = "No receipt data";
+} else {
+  // show decoded text
+  receiptBody.textContent = decoded;
+
+  // try to extract Receipt ID or generate a fallback
+  const idMatch = decoded.match(/(?:Receipt ID|QR ID|ID)\s*[:\-]\s*([A-Za-z0-9\-]+)/i);
+  const rid = idMatch ? idMatch[1] : ("AF-" + Date.now().toString().slice(-6));
+  const now = new Date();
+  metaEl.textContent = `Receipt: ${rid} • ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+}
+
+/* =========================
+   PDF generation (html2pdf)
+   ========================= */
+document.getElementById('downloadPdfBtn').addEventListener('click', ()=> {
+  // choose filename
+  const rawText = decoded || 'afordness_receipt';
+  // get receipt id if exists
+  const idMatch = rawText.match(/(?:Receipt ID|QR ID|ID)\s*[:\-]\s*([A-Za-z0-9\-]+)/i);
+  const rid = idMatch ? idMatch[1] : ("AF-" + Date.now().toString().slice(-6));
+  const filename = `Receipt_${rid}_${(new Date()).toLocaleDateString().replace(/\//g,'-')}.pdf`;
+
+  // options: quality, margins, image type
+  const element = document.getElementById('receiptCard');
+
+  const opt = {
+    margin:       [0.2, 0.25, 0.2, 0.25], // top, left, bottom, right in inches
+    filename:     filename,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true, logging: false, allowTaint: true },
+    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+  };
+
+  // show small feedback
+  const btn = document.getElementById('downloadPdfBtn');
+  btn.disabled = true;
+  btn.textContent = 'Preparing PDF...';
+
+  // generate
+  html2pdf().set(opt).from(element).save().then(()=> {
+    btn.disabled = false;
+    btn.textContent = 'Download PDF';
+  }).catch((err)=>{
+    console.error(err);
+    alert('PDF creation failed. Try again.');
+    btn.disabled = false;
+    btn.textContent = 'Download PDF';
+  });
+});
+
+/* =========================
+   Print
+   ========================= */
+document.getElementById('printBtn').addEventListener('click', ()=> {
+  window.print();
+});
+
+/* =========================
+   Copy text
+   ========================= */
+document.getElementById('copyBtn').addEventListener('click', async ()=>{
+  if(!decoded){ alert('Nothing to copy'); return; }
+  try{
+    await navigator.clipboard.writeText(decoded);
+    const note = document.createElement('div');
+    note.textContent = 'Copied to clipboard';
+    note.style.position='fixed'; note.style.bottom='18px'; note.style.left='50%';
+    note.style.transform='translateX(-50%)'; note.style.background='#111827'; note.style.padding='8px 12px';
+    note.style.borderRadius='8px'; note.style.zIndex=9999; document.body.appendChild(note);
+    setTimeout(()=> note.remove(),1500);
+  }catch(e){
+    alert('Copy failed — long press to select.');
   }
-
-  const decoded = safeDecode(raw);
-
-  // show final
-  resultEl.textContent = decoded;
-
-  // prepare copy button
-  copyBtn.style.display = "inline-block";
-  copyBtn.addEventListener('click', ()=> {
-    navigator.clipboard?.writeText(decoded).then(()=> {
-      note.textContent = "Copied to clipboard";
-      setTimeout(()=> note.textContent = "", 2000);
-    }).catch(()=> {
-      note.textContent = "Copy failed — long-press to select";
-    });
-  });
-
-  // open raw link button: reload same url in new tab (useful on mobiles)
-  openRaw.style.display = "inline-block";
-  openRaw.addEventListener('click', ()=> {
-    window.open(window.location.href, '_blank');
-  });
-
-})();
+});
 </script>
-
 </body>
   </html>
