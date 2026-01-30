@@ -190,10 +190,6 @@ body{
     window.open(window.location.href, '_blank');
   });
 
-  // small UX: show first 200 chars preview in meta (optional)
-  const preview = decoded.length > 200 ? decoded.slice(0,200) + "..." : decoded;
-  document.querySelector('.meta').textContent = preview;
-
 })();
 </script>
 
