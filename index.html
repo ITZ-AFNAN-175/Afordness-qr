@@ -1,82 +1,200 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Afordness QR Viewer</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Afordness — Premium QR View</title>
 
 <style>
-body {
-  margin: 0;
-  height: 100vh;
-  background: radial-gradient(circle at top, #0f172a, #020617);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-family: 'Segoe UI', sans-serif;
-  color: #e5e7eb;
+:root{
+  --bg1:#060716;
+  --bg2:#07102a;
+  --card:#07142b;
+  --gold:#facc15;
+  --soft:#98a8ff;
+  --muted:#8f98b4;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:Inter,Segoe UI,system-ui,Arial;
+  background: radial-gradient(1200px 600px at 10% 10%, rgba(124,58,237,0.06), transparent 8%),
+              linear-gradient(180deg,var(--bg1),var(--bg2));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  color: #e6eefc;
 }
 
+/* Card */
 .card {
-  background: #020617;
-  border-radius: 20px;
-  padding: 28px;
-  width: 90%;
-  max-width: 420px;
-  text-align: center;
-  border: 1px solid rgba(250, 204, 21, 0.35);
-  box-shadow: 0 0 45px rgba(250, 204, 21, 0.25);
+  width:100%;
+  max-width:760px;
+  border-radius:18px;
+  padding:28px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.03);
+  box-shadow: 0 20px 60px rgba(3,6,23,0.6);
+  display:grid;
+  grid-template-columns: 1fr 360px;
+  gap:24px;
+  align-items:start;
 }
 
-h1 {
-  color: #facc15;
-  margin-bottom: 6px;
-  letter-spacing: 1px;
+/* Left: content */
+.head {
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.brand {
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.logo {
+  width:54px;height:54px;border-radius:10px;
+  background:linear-gradient(135deg,var(--gold),#e6b800);
+  display:flex;align-items:center;justify-content:center;font-weight:800;color:#07102a;
+  box-shadow: 0 8px 30px rgba(250,204,21,0.12);
+}
+.title{font-size:20px;font-weight:700;color:var(--gold);letter-spacing:1px}
+.subtitle{color:var(--soft);font-size:13px}
+
+/* result box */
+.resultWrap{
+  margin-top:14px;
+}
+.resultBox{
+  background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+  border-radius:12px;padding:18px;border:1px dashed rgba(250,204,21,0.14);
+  min-height:140px;font-size:15px;line-height:1.7;color:#e6eefc;white-space:pre-wrap;word-break:break-word;
+  position:relative;
+  overflow:auto;
 }
 
-.subtitle {
-  font-size: 13px;
-  color: #38bdf8;
-  margin-bottom: 20px;
+/* badge & actions */
+.rowActions{display:flex;gap:8px;align-items:center;margin-top:12px}
+.btn{
+  background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 12px;border-radius:10px;color:var(--soft);cursor:pointer;font-weight:600}
+.btn.gold{background:linear-gradient(90deg,var(--gold),#e6b800);color:#07102a;border:none;box-shadow:0 8px 20px rgba(250,204,21,0.12)}
+.copyNote{font-size:12px;color:var(--muted);margin-left:8px}
+
+/* Right: info / qr preview */
+.side{
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+}
+.canvasWrap{
+  background:#fff;padding:14px;border-radius:12px;box-shadow:0 12px 30px rgba(2,6,23,0.35);
+  display:flex;align-items:center;justify-content:center;
+}
+.meta{font-size:13px;color:var(--muted);text-align:center}
+
+/* small view */
+@media(max-width:880px){
+  .card{grid-template-columns:1fr; padding:20px}
+  .canvasWrap{order:-1}
 }
 
-.result {
-  background: #0f172a;
-  padding: 16px;
-  border-radius: 12px;
-  border: 1px dashed #facc15;
-  font-size: 15px;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-footer {
-  margin-top: 16px;
-  font-size: 12px;
-  color: #94a3b8;
-}
+/* subtle entrance */
+.card{transform:translateY(6px);opacity:0;animation:enter .45s ease forwards}
+@keyframes enter{to{transform:none;opacity:1}}
 </style>
 </head>
-
 <body>
 
-<div class="card">
-  <h1>AFORDNESS</h1>
-  <div class="subtitle">Official QR Result Viewer</div>
+<div class="card" role="main" aria-live="polite">
+  <div>
+    <div class="head">
+      <div class="brand">
+        <div class="logo">AF</div>
+        <div>
+          <div class="title">AFORDNESS</div>
+          <div class="subtitle">Official • Secure QR Viewer</div>
+        </div>
+      </div>
+    </div>
 
-  <div class="result" id="output">
-    No data found in QR.
+    <div class="resultWrap">
+      <div id="result" class="resultBox">QR scan successful — waiting for data...</div>
+
+      <div class="rowActions">
+        <button class="btn gold" id="openRaw" style="display:none">Open in new tab</button>
+        <button class="btn" id="copyBtn" style="display:none">Copy text</button>
+        <div class="copyNote" id="note"></div>
+      </div>
+    </div>
   </div>
 
-  <footer>© 2026 Afordness QR Service</footer>
+  <div class="side">
+    <div class="canvasWrap" id="qrPreview">
+      <!-- small QR / icon shown when available -->
+      <svg width="120" height="120" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="21" height="21" rx="4" stroke="#e6eefc" stroke-opacity="0.06" fill="#fff"/>
+        <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z" fill="#07102a"/>
+      </svg>
+    </div>
+    <div class="meta">Afordness • Secure Viewer</div>
+  </div>
 </div>
 
 <script>
-const params = new URLSearchParams(window.location.search);
-const data = params.get("data");
+(function(){
+  // Support both ?text= and ?data= (and handle + space issue)
+  const params = new URLSearchParams(window.location.search);
+  let raw = params.get('text') || params.get('data') || params.get('q') || "";
 
-if (data) {
-  document.getElementById("output").textContent = decodeURIComponent(data);
-}
+  // Some QR scanners convert spaces to + — normalize
+  function safeDecode(s){
+    try{
+      // replace + with space before decode
+      return decodeURIComponent(String(s).replace(/\+/g, ' '));
+    }catch(e){
+      // fallback: return raw
+      return String(s);
+    }
+  }
+
+  const resultEl = document.getElementById('result');
+  const copyBtn = document.getElementById('copyBtn');
+  const openRaw = document.getElementById('openRaw');
+  const note = document.getElementById('note');
+
+  if(!raw){
+    resultEl.textContent = "No data found in URL. Make sure your QR encodes a link like:\n\nhttps://youruser.github.io/your-repo/view.html?text=YOUR%20ENCODED%20TEXT\n\nIf the generator put the text directly into the QR (not a link), regenerate using the generator so it encodes the public link.";
+    note.textContent = "Tip: Use the generator's 'Generate Link & QR' button.";
+    return;
+  }
+
+  const decoded = safeDecode(raw);
+
+  // show final
+  resultEl.textContent = decoded;
+
+  // prepare copy button
+  copyBtn.style.display = "inline-block";
+  copyBtn.addEventListener('click', ()=> {
+    navigator.clipboard?.writeText(decoded).then(()=> {
+      note.textContent = "Copied to clipboard";
+      setTimeout(()=> note.textContent = "", 2000);
+    }).catch(()=> {
+      note.textContent = "Copy failed — long-press to select";
+    });
+  });
+
+  // open raw link button: reload same url in new tab (useful on mobiles)
+  openRaw.style.display = "inline-block";
+  openRaw.addEventListener('click', ()=> {
+    window.open(window.location.href, '_blank');
+  });
+
+  // small UX: show first 200 chars preview in meta (optional)
+  const preview = decoded.length > 200 ? decoded.slice(0,200) + "..." : decoded;
+  document.querySelector('.meta').textContent = preview;
+
+})();
 </script>
 
 </body>
